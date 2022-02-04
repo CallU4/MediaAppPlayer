@@ -1,27 +1,31 @@
 package com.example.mediaappplayer
 
-import android.content.pm.PackageManager
+import android.Manifest
 import android.media.MediaPlayer
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.app.ActivityCompat
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.mediaappplayer.adapters.MusicAdapter
 import com.example.mediaappplayer.databinding.ActivityMainBinding
 import com.example.mediaappplayer.dialogs.AddMusicDialog
-import com.example.mediaappplayer.models.Music
-import java.util.jar.Manifest
+import com.karumi.dexter.Dexter
+import com.karumi.dexter.PermissionToken
+import com.karumi.dexter.listener.PermissionDeniedResponse
+import com.karumi.dexter.listener.PermissionGrantedResponse
+import com.karumi.dexter.listener.PermissionRequest
+import com.karumi.dexter.listener.single.PermissionListener
 
 class MainActivity : AppCompatActivity() {
 
     lateinit var bind: ActivityMainBinding
-
-    private var adapter = MusicAdapter(object: MusicAdapter.OnItemClickListener{
-        override fun onClick(song: Music) {
-            println("Clicked")
-            playMusic()
+    var media = MediaPlayer()
+    private var pos = 1
+    private var adapter = MusicAdapter(object : MusicAdapter.OnItemClickListener {
+        override fun onItemClick(position: Int) {
+            println(position)
+            playMusic("${position + 1}", position)
         }
     })
 
@@ -35,27 +39,62 @@ class MainActivity : AppCompatActivity() {
         bind.recyclerView.adapter = adapter
 
 
+
+        callRuntimePermission()
+
+
+
         bind.btnAddMusic.setOnClickListener {
             showMusicAddDialog()
         }
 
         swipeToDelete()
-
     }
 
+    private fun callRuntimePermission() {
+        Dexter.withContext(this)
+            .withPermission(Manifest.permission.READ_EXTERNAL_STORAGE)
+            .withListener(object: PermissionListener {
+                override fun onPermissionDenied(p0: PermissionDeniedResponse?) {
 
-    fun playMusic(){
-        var media = MediaPlayer.create(this, R.raw.coco)
-        media.setOnCompletionListener {
-            it.stop()
+                }
+
+                override fun onPermissionGranted(p0: PermissionGrantedResponse?) {
+
+                }
+
+                override fun onPermissionRationaleShouldBeShown(
+                    p0: PermissionRequest?,
+                    p1: PermissionToken?
+                ) {
+
+                }
+            })
+            .check();
+    }
+
+    fun playMusic(songName: String, position: Int) {
+        if (!media.isPlaying) {
+            pos = position
+            var path = "/sdcard/Download/$songName.mp3"
+            try {
+                media.setDataSource(path)
+                media.prepare()
+                media.start()
+            } catch (ex: IllegalStateException) {
+                println(ex)
+            } catch (ex: Exception) {
+                println(ex)
+            }
+        } else {
+            media.pause()
         }
-        media.start()
     }
 
     fun showMusicAddDialog() {
         var musicAddDialog = AddMusicDialog()
         musicAddDialog.show(supportFragmentManager, "musicAdd")
-        adapter.addMusic("Samuel Cargidres - Stunning Blade")
+        adapter.addMusic("Dances")
 
     }
 
@@ -76,5 +115,4 @@ class MainActivity : AppCompatActivity() {
         var itemTouchHelper = ItemTouchHelper(callback)
         itemTouchHelper.attachToRecyclerView(bind.recyclerView)
     }
-
 }

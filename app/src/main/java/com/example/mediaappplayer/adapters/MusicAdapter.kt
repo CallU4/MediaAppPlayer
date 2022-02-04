@@ -8,9 +8,10 @@ import android.widget.AdapterView
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.RecyclerView
 import com.example.mediaappplayer.databinding.ChooseMusicBinding
+import com.example.mediaappplayer.databinding.MusicItemBinding
 import com.example.mediaappplayer.models.Music
 
-class MusicAdapter(private var songClickListener: OnItemClickListener) : RecyclerView.Adapter<MusicAdapter.MusicHolder>() {
+class MusicAdapter(private var onClick: OnItemClickListener) : RecyclerView.Adapter<MusicAdapter.MusicHolder>() {
 
     private var musicList = ArrayList<Music>()
 
@@ -29,24 +30,25 @@ class MusicAdapter(private var songClickListener: OnItemClickListener) : Recycle
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): MusicHolder {
 
-        var bind = ChooseMusicBinding.inflate(LayoutInflater.from(parent.context), parent, false)
+        var bind = MusicItemBinding.inflate(LayoutInflater.from(parent.context), parent, false)
         return MusicHolder(bind)
     }
 
     override fun onBindViewHolder(holder: MusicHolder, position: Int) {
-        holder.bind.tvFolder.text = musicList[position].name
+        holder.bind.tvSongName.text = musicList[position].name
 
-        holder.itemView.setOnClickListener{
-            songClickListener.onClick(musicList[position])
+        holder.itemView.setOnClickListener {
+            onClick.onItemClick(position)
         }
+
     }
 
     override fun getItemCount(): Int = musicList.size
 
-    inner class MusicHolder(var bind: ChooseMusicBinding) : RecyclerView.ViewHolder(bind.root)
+    inner class MusicHolder(var bind: MusicItemBinding) : RecyclerView.ViewHolder(bind.root)
 
     interface OnItemClickListener{
-        fun onClick(song: Music)
+        fun onItemClick(position: Int)
     }
 
 }
